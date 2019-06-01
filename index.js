@@ -65,11 +65,11 @@ async function scrapeInfiniteScrollItems(
     console.log("\n") 
     console.log(`now downloading media to ./${config.directory}\n`)
     cmd.get(
-        `rm -rf ${config.directory};
-        mkdir ${config.directory};
+        `rm -rf ~/Desktop/${config.directory};
+        mkdir ~/Desktop/${config.directory};
         for url in ${mediaURLs}
     do
-        ffmpeg -protocol_whitelist file,http,https,tcp,tls,crypto -i $url -c copy ./${config.directory}/`+"${url:18:13}"+`.mp4
+        ffmpeg -protocol_whitelist file,http,https,tcp,tls,crypto -i $url -c copy ~/Desktop/${config.directory}/`+"${url:18:13}"+`.mp4
     done`,
         function(err, data, stderr) {
             console.log('all finished!\n')
