@@ -63,7 +63,7 @@ async function scrapeInfiniteScrollItems(
     console.log(`found ${config.numItems} videos...`)
     console.log(items)
     console.log("\n") 
-    console.log(`now downloading media to ./${config.directory}\n`)
+    console.log(`now downloading media to ~/Desktop/${config.directory}\n`)
     cmd.get(
         `rm -rf ~/Desktop/${config.directory};
         mkdir ~/Desktop/${config.directory};
