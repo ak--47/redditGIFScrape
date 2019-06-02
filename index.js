@@ -6,7 +6,7 @@ const cmd = require('node-cmd');
 const config = {
     site: "https://www.reddit.com/r/oddlysatisfying/",
     numItems: 8,
-    directory: "bar"
+    directory: "oddlysatisfyingGifs"
 }
 
 
@@ -49,7 +49,10 @@ async function scrapeInfiniteScrollItems(
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
     const page = await browser.newPage();
-    page.setViewport({ width: 1280, height: 926 });
+    page.setViewport({
+        width: 1280,
+        height: 926
+    });
 
     // Navigate to the demo page.
     await page.goto(config.site);
@@ -59,9 +62,15 @@ async function scrapeInfiniteScrollItems(
     const items = await scrapeInfiniteScrollItems(page, extractItems, config.numItems);
 
     console.log(`looked for ${config.numItems} videos... found ${items.length} videos\n`)
+    
+     
+    // remove files
     cmd.get(`rm -rf ~/Desktop/${config.directory};
         mkdir ~/Desktop/${config.directory};`)
+    
     console.log(`now downloading media to ~/Desktop/${config.directory}\n`)
+
+    
 
     //then use ffmpeg to download each item!
     items.forEach((url) => {
@@ -70,12 +79,19 @@ async function scrapeInfiniteScrollItems(
         cmd.get(
             `ffmpeg -protocol_whitelist file,http,https,tcp,tls,crypto -i ${url} -c copy ~/Desktop/${config.directory}/${url.split("/").slice(-2, -1)[0]}.mp4`,
             function(err, data, stderr) {
-                console.log('got it!\n')
+                if (err) {
+                    console.error(err)
+                }
+
+                else {
+                    console.log(data)
+                    console.log('\ngot it!\n')
+                }
             }
         );
 
     })
-    
+
     // Close the browser.
-    await browser.close().then(()=> console.log('browser closed'));
+    await browser.close().then(() => console.log('browser closed'));
 })();
