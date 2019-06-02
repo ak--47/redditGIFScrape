@@ -10,7 +10,8 @@ const {
 const config = {
     site: process.argv[2] || "https://www.reddit.com/r/oddlysatisfying/",
     numItems: process.argv[4] || 300,
-    directory: process.argv[3] || "oddlysatisfyingGifs"
+    directory: process.argv[3] || "oddlysatisfyingGifs",
+    delayForScroll: process.argv[5] || 250
 }
 
 //extract items from page
@@ -31,8 +32,8 @@ function extractItems() {
 async function scrapeInfiniteScrollItems(
     page,
     extractItems,
-    itemTargetCount = 100,
-    scrollDelay = process.argv[5] || 250,
+    itemTargetCount = 10000,
+    scrollDelay = 5000
 ) {
     let items = [];
     try {
@@ -66,6 +67,7 @@ async function scrapeInfiniteScrollItems(
     console.log(`navigating to ${config.site}\n`)
 
     // Scroll and extract items from the page.
+    //TO DO add scroll delay
     const urls = await scrapeInfiniteScrollItems(page, extractItems, config.numItems).catch((err) => console.log(err));
     console.log(`looked for ${config.numItems} videos... found ${urls.length} videos\n`)
 

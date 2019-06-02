@@ -5,7 +5,7 @@ This is a small module to take a subreddit and download all GIFs and Videos as M
 
 ### Installation
 
-Module requires [Node.js](https://nodejs.org/) v4+, [Puppeteer](https://github.com/GoogleChrome/puppeteer) (bundlded) AND [ffmpeg](https://formulae.brew.sh/formula/ffmpeg) to run.
+Module requires [Node.js](https://nodejs.org/) v4+, [Puppeteer](https://github.com/GoogleChrome/puppeteer) (bundles) AND [ffmpeg](https://formulae.brew.sh/formula/ffmpeg) to run.
 
 Clone the repo; install the dependencies:
 
@@ -26,4 +26,4 @@ example:
 $ node index.js https://www.reddit.com/r/oddlysatisfying/ oddlySatisfying 200 250
 ```
 
-files will be place on in the `./fetched/{yourFolderName}` directory when script is complete
+files will be place on in the `./fetched/{{folder to download to}}` directory when script is complete
