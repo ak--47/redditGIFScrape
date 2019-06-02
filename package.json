@@ -9,7 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "node-cmd": "^3.0.0",
     "puppeteer": "^1.14.0"
   }
 }

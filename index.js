@@ -1,18 +1,24 @@
 // this also requires FFMPEG to be installed!
 const puppeteer = require('puppeteer');
-const cmd = require('node-cmd');
+const {
+    spawn,
+    exec
+} = require('child_process');
 
 
+//default to r/oddlysatisfying
 const config = {
-    site: "https://www.reddit.com/r/oddlysatisfying/",
-    numItems: 8,
-    directory: "oddlysatisfyingGifs"
+    site: process.argv[2] || "https://www.reddit.com/r/oddlysatisfying/",
+    numItems: process.argv[4] || 300,
+    directory: process.argv[3] || "oddlysatisfyingGifs"
 }
 
-
+//extract items from page
 function extractItems() {
     const extractedElements = document.querySelectorAll('video source');
     const items = [];
+
+    //only get m3u8 playlist files
     for (let element of extractedElements) {
         if (element.src.indexOf('m3u8') !== -1) {
             items.push(element.src);
@@ -21,11 +27,12 @@ function extractItems() {
     return items;
 }
 
+//scrape with infinite scrolling
 async function scrapeInfiniteScrollItems(
     page,
     extractItems,
-    itemTargetCount = 10,
-    scrollDelay = 500,
+    itemTargetCount = 100,
+    scrollDelay = process.argv[5] || 250,
 ) {
     let items = [];
     try {
@@ -41,8 +48,8 @@ async function scrapeInfiniteScrollItems(
     return items;
 }
 
+//do everything
 (async() => {
-    // Set up browser and page.
     console.log('starting up... \n')
     const browser = await puppeteer.launch({
         headless: true,
@@ -59,36 +66,37 @@ async function scrapeInfiniteScrollItems(
     console.log(`navigating to ${config.site}\n`)
 
     // Scroll and extract items from the page.
-    const items = await scrapeInfiniteScrollItems(page, extractItems, config.numItems);
+    const urls = await scrapeInfiniteScrollItems(page, extractItems, config.numItems).catch((err) => console.log(err));
+    console.log(`looked for ${config.numItems} videos... found ${urls.length} videos\n`)
 
-    console.log(`looked for ${config.numItems} videos... found ${items.length} videos\n`)
-    
-     
-    // remove files
-    cmd.get(`rm -rf ~/Desktop/${config.directory};
-        mkdir ~/Desktop/${config.directory};`)
-    
-    console.log(`now downloading media to ~/Desktop/${config.directory}\n`)
 
-    
+    // remove directory in fetched, and create a new One
+    exec(`rm -rf ./fetched/${config.directory};
+        mkdir ./fetched/${config.directory};`)
 
-    //then use ffmpeg to download each item!
-    items.forEach((url) => {
+    console.log(`now downloading ${urls.length} files to ~/Desktop/${config.directory}\n`)
 
-        console.log(`fetching ${url}`);
-        cmd.get(
-            `ffmpeg -protocol_whitelist file,http,https,tcp,tls,crypto -i ${url} -c copy ~/Desktop/${config.directory}/${url.split("/").slice(-2, -1)[0]}.mp4`,
-            function(err, data, stderr) {
-                if (err) {
-                    console.error(err)
-                }
+    //use ffmpeg to download each item!
+    // TODO: for some unknown reason, this is NOT being run on every item :(
+    urls.forEach((url) => {
+        let uniqueFileName = `./fetched/${config.directory}/${url.split("/").slice(-2, -1)[0]}.mp4`
+        var child = spawn('ffmpeg', [`-hide_banner`, `-loglevel`, `panic`,`-protocol_whitelist`, `file,http,https,tcp,tls,crypto`, `-i`, `${url}`, `-c`, `copy`, uniqueFileName]);
 
-                else {
-                    console.log(data)
-                    console.log('\ngot it!\n')
-                }
+        // for logging console output
+        child.stderr.on('data', function(data) {
+            console.log('stderr: ' + data);
+        });
+
+
+        child.on('close', function(code) {
+            if (code == 0) {
+                console.log(`success!!! created ${uniqueFileName}`)
+            } else {
+                console.error('ERROR!\n')
+                console.log('child process exited with code ' + code);
             }
-        );
+        });
+
 
     })
 
