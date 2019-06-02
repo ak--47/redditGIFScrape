@@ -1,15 +1,12 @@
 // this also requires FFMPEG to be installed!
 const puppeteer = require('puppeteer');
-const {
-    spawn,
-    exec
-} = require('child_process');
+const { exec } = require('child_process');
 
 
 //default to r/oddlysatisfying
 const config = {
     site: process.argv[2] || "https://www.reddit.com/r/oddlysatisfying/",
-    numItems: process.argv[4] || 300,
+    numItems: process.argv[4] || 1000,
     directory: process.argv[3] || "oddlysatisfyingGifs",
     delayForScroll: process.argv[5] || 250
 }
@@ -76,31 +73,46 @@ async function scrapeInfiniteScrollItems(
     exec(`rm -rf ./fetched/${config.directory};
         mkdir ./fetched/${config.directory};`)
 
-    console.log(`now downloading ${urls.length} files to ~/Desktop/${config.directory}\n`)
+    console.log(`now downloading ${urls.length} files to ./fetched/${config.directory}\n`)
 
     //use ffmpeg to download each item!
     // TODO: for some unknown reason, this is NOT being run on every item :(
-    urls.forEach((url) => {
-        let uniqueFileName = `./fetched/${config.directory}/${url.split("/").slice(-2, -1)[0]}.mp4`
-        var child = spawn('ffmpeg', [`-hide_banner`, `-loglevel`, `panic`,`-protocol_whitelist`, `file,http,https,tcp,tls,crypto`, `-i`, `${url}`, `-c`, `copy`, uniqueFileName]);
+    let UrlsForBash = urls.join(' ')
+    exec(`for url in ${UrlsForBash}
+do
+    ffmpeg -loglevel info -protocol_whitelist file,http,https,tcp,tls,crypto -i $url -c copy ./fetched/${config.directory}/`+"${url:18:13}"+`.mp4;
+done;`, {maxBuffer: 1024 * 1024 * 1024 * 2}, (e, stdout, stderr) => {
+            // if (e instanceof Error) {
+            //     console.error(e);
+            //     throw e;
+            // }
+            // // console.log('stdout ', stdout);
+            // console.log('stderr ', stderr);
+            console.log('ALL FINISHED!')
+        })
+    
+    // urls.forEach((url) => {
+    //     let uniqueFileName = `./fetched/${config.directory}/${url.split("/").slice(-2, -1)[0]}.mp4`
 
-        // for logging console output
-        child.stderr.on('data', function(data) {
-            console.log('stderr: ' + data);
-        });
+    //     var child = spawn('ffmpeg', [`-hide_banner`, `-loglevel`, `panic`,`-protocol_whitelist`, `file,http,https,tcp,tls,crypto`, `-i`, `${url}`, `-c`, `copy`, uniqueFileName]);
+
+    //     // for logging console output
+    //     child.stderr.on('data', function(data) {
+    //         console.log('stderr: ' + data);
+    //     });
 
 
-        child.on('close', function(code) {
-            if (code == 0) {
-                console.log(`success!!! created ${uniqueFileName}`)
-            } else {
-                console.error('ERROR!\n')
-                console.log('child process exited with code ' + code);
-            }
-        });
+    //     child.on('close', function(code) {
+    //         if (code == 0) {
+    //             console.log(`success!!! created ${uniqueFileName}`)
+    //         } else {
+    //             console.error('ERROR!\n')
+    //             console.log('child process exited with code ' + code);
+    //         }
+    //     });
 
 
-    })
+    // })
 
     // Close the browser.
     await browser.close().then(() => console.log('browser closed'));
