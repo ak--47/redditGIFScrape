@@ -58,24 +58,24 @@ async function scrapeInfiniteScrollItems(
     // Scroll and extract items from the page.
     const items = await scrapeInfiniteScrollItems(page, extractItems, config.numItems);
 
-
-    let mediaURLs = items.join(" ")
-    console.log(`found ${config.numItems} videos...`)
-    console.log(items)
-    console.log("\n") 
+    console.log(`looked for ${config.numItems} videos... found ${items.length} videos\n`)
+    cmd.get(`rm -rf ~/Desktop/${config.directory};
+        mkdir ~/Desktop/${config.directory};`)
     console.log(`now downloading media to ~/Desktop/${config.directory}\n`)
-    cmd.get(
-        `rm -rf ~/Desktop/${config.directory};
-        mkdir ~/Desktop/${config.directory};
-        for url in ${mediaURLs}
-    do
-        ffmpeg -protocol_whitelist file,http,https,tcp,tls,crypto -i $url -c copy ~/Desktop/${config.directory}/`+"${url:18:13}"+`.mp4
-    done`,
-        function(err, data, stderr) {
-            console.log('all finished!\n')
-        }
-    );
 
+    //then use ffmpeg to download each item!
+    items.forEach((url) => {
+
+        console.log(`fetching ${url}`);
+        cmd.get(
+            `ffmpeg -protocol_whitelist file,http,https,tcp,tls,crypto -i ${url} -c copy ~/Desktop/${config.directory}/${url.split("/").slice(-2, -1)[0]}.mp4`,
+            function(err, data, stderr) {
+                console.log('got it!\n')
+            }
+        );
+
+    })
+    
     // Close the browser.
-    await browser.close();
+    await browser.close().then(()=> console.log('browser closed'));
 })();
